@@ -1,0 +1,318 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foodie Journal — 美食探索手帳</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="navbar">
+        <a href="/" class="logo">
+            <span class="logo-mark">f.</span>
+            <span class="logo-name">foodie journal<small>YOUR PERSONAL FOOD GUIDE</small></span>
+        </a>
+        <nav>
+            <a href="#collection">我的收藏</a>
+            <a href="#add-form" class="nav-cta">＋ 收藏新店</a>
+        </nav>
+    </header>
+
+    <main class="page">
+        <section class="hero">
+            <div class="hero-copy">
+                <p class="eyebrow"><span></span> A JOURNEY THROUGH TASTE</p>
+                <h1>生活的美好，<br>藏在每一口<span>喜歡裡。</span></h1>
+                <p class="hero-description">
+                    收藏值得造訪的店，記錄每一次美味的相遇。<br>
+                    你的下一場美食探險，從這裡開始。
+                </p>
+                <a href="#collection" class="hero-button">探索我的收藏 <span>↗</span></a>
+                <div class="hero-footnote">CURATED WITH LOVE · ONE BITE AT A TIME</div>
+            </div>
+
+            <div class="hero-visual">
+                <img
+                    src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1200&q=85"
+                    alt="咖啡與午後的美好時光"
+                >
+                <div class="hero-image-label">
+                    <span>THE ART OF SLOW LIVING</span>
+                    <strong>Good food, good mood.</strong>
+                </div>
+                <div class="hero-number">01 / EVERYDAY FINDS</div>
+            </div>
+            <div class="hero-side-note">A LITTLE JOURNAL OF DELICIOUS THINGS</div>
+        </section>
+
+        <section class="stats">
+            <div class="stat-item">
+                <span class="stat-label">我的收藏</span>
+                <strong>{{ total }}</strong>
+                <span class="stat-caption">PLACES TO REMEMBER</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">已經造訪</span>
+                <strong>{{ visited_count }}</strong>
+                <span class="stat-caption">MEMORIES MADE</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">待探索</span>
+                <strong>{{ total - visited_count }}</strong>
+                <span class="stat-caption">NEXT ADVENTURES</span>
+            </div>
+            <div class="stat-message">
+                <span class="tiny-flower">✳</span>
+                <p>每一間收藏的店，<br>都是生活裡值得期待的小事。</p>
+            </div>
+        </section>
+
+        <section id="collection" class="collection-section">
+            <div class="section-header">
+                <div>
+                    <p class="eyebrow">THE PERSONAL COLLECTION</p>
+                    <h2>美食探索清單<span class="heading-dot">.</span></h2>
+                    <p class="section-subtitle">把喜歡的味道，好好收藏起來。</p>
+                </div>
+                <div class="collection-count">
+                    <span>YOUR LITTLE GUIDE</span>
+                    <strong>{{ restaurants|length }} <small>PLACES</small></strong>
+                </div>
+            </div>
+
+            <form class="filter-bar" method="GET" action="/">
+                <div class="filter-search">
+                    <span class="search-icon">⌕</span>
+                    <input name="keyword" value="{{ keyword }}" placeholder="搜尋店名、地址或筆記">
+                </div>
+                <select name="city" aria-label="依地區篩選">
+                    <option value="">所有地區</option>
+                    {% for item in cities %}
+                    <option value="{{ item }}" {% if selected_city == item %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+                <select name="category" aria-label="依料理類型篩選">
+                    <option value="">所有類型</option>
+                    {% for item in categories %}
+                    <option value="{{ item }}" {% if selected_category == item %}selected{% endif %}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+                <select name="visited" aria-label="依造訪狀態篩選">
+                    <option value="">全部狀態</option>
+                    <option value="0" {% if selected_visited == '0' %}selected{% endif %}>尚未造訪</option>
+                    <option value="1" {% if selected_visited == '1' %}selected{% endif %}>已經造訪</option>
+                </select>
+                <button type="submit" class="filter-submit">搜尋 ↗</button>
+                <a href="/" class="clear-filter">重設</a>
+            </form>
+
+            <div class="active-filters">
+                <span class="filter-caption">BROWSE BY</span>
+                <a href="/" class="{% if not selected_city and not selected_category and selected_visited == '' %}active{% endif %}">全部收藏</a>
+                {% for item in cities %}
+                <a href="{{ url_for('index', city=item) }}" class="{% if selected_city == item %}active{% endif %}">{{ item }}</a>
+                {% endfor %}
+            </div>
+
+            <div class="restaurant-grid">
+                {% for restaurant in restaurants %}
+                <article class="restaurant-card">
+                    <div class="card-image">
+                        {% if '咖啡' in restaurant['category'] or '飲料' in restaurant['category'] %}
+                        <img src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=900&q=80" alt="{{ restaurant['name'] }}">
+                        {% elif '甜點' in restaurant['category'] or '蛋糕' in restaurant['category'] %}
+                        <img src="https://images.unsplash.com/photo-1551024506-0eef8f6a8d7e?auto=format&fit=crop&w=900&q=80" alt="{{ restaurant['name'] }}">
+                        {% elif '日式' in restaurant['category'] or '壽司' in restaurant['category'] %}
+                        <img src="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=900&q=80" alt="{{ restaurant['name'] }}">
+                        {% elif '義式' in restaurant['category'] or '義大利' in restaurant['category'] or '披薩' in restaurant['category'] %}
+                        <img src="https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=900&q=80" alt="{{ restaurant['name'] }}">
+                        {% elif '早午餐' in restaurant['category'] or '早餐' in restaurant['category'] %}
+                        <img src="https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=900&q=80" alt="{{ restaurant['name'] }}">
+                        {% elif '火鍋' in restaurant['category'] or '燒肉' in restaurant['category'] %}
+                        <img src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80" alt="{{ restaurant['name'] }}">
+                        {% else %}
+                        <img src="https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=900&q=80" alt="{{ restaurant['name'] }}">
+                        {% endif %}
+
+                        <span class="image-number">{{ "%02d"|format(loop.index) }}</span>
+                        {% if restaurant['visited'] %}
+                        <span class="status-badge visited">✓ 已造訪</span>
+                        {% else %}
+                        <span class="status-badge planned">WANT TO GO</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-content">
+                        <div class="card-kicker">
+                            <span>{{ restaurant['city'] }} · {{ restaurant['category'] }}</span>
+                            <span class="price">{{ restaurant['price'] or '—' }}</span>
+                        </div>
+
+                        <h3>{{ restaurant['name'] }}</h3>
+
+                        <p class="card-address">
+                            <span>⌖</span>
+                            {{ restaurant['address'] or '尚未記錄地址' }}
+                        </p>
+
+                        <div class="card-divider"></div>
+
+                        <div class="card-note-row">
+                            {% if restaurant['rating'] %}
+                            <span class="stars">{% for star in range(restaurant['rating']) %}★{% endfor %}<span class="rating-number">{{ restaurant['rating'] }}.0</span></span>
+                            {% else %}
+                            <span class="no-rating">尚未評分</span>
+                            {% endif %}
+                            <span class="note-label">MY NOTES</span>
+                        </div>
+
+                        <p class="card-note">{{ restaurant['notes'] or '還沒有留下筆記，等你親自探索。' }}</p>
+
+                        <div class="card-actions">
+                            <form method="POST" action="{{ url_for('toggle_visited', restaurant_id=restaurant['id']) }}">
+                                <button type="submit" class="action-link">
+                                    {% if restaurant['visited'] %}改為未造訪{% else %}✓ 標記已造訪{% endif %}
+                                </button>
+                            </form>
+                            <div class="action-right">
+                                <button type="button" class="icon-action" aria-label="編輯店家" onclick="document.getElementById('edit-{{ restaurant['id'] }}').showModal()">↗</button>
+                                <form method="POST" action="{{ url_for('delete_restaurant', restaurant_id=restaurant['id']) }}" onsubmit="return confirm('確定要刪除這間店嗎？')">
+                                    <button type="submit" class="delete-action" aria-label="刪除店家">×</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <dialog id="edit-{{ restaurant['id'] }}" class="edit-dialog">
+                        <form method="POST" action="{{ url_for('edit_restaurant', restaurant_id=restaurant['id']) }}">
+                            <div class="dialog-heading">
+                                <div>
+                                    <p class="eyebrow">UPDATE YOUR COLLECTION</p>
+                                    <h2>編輯這間店</h2>
+                                </div>
+                                <button type="button" class="dialog-close" onclick="this.closest('dialog').close()">×</button>
+                            </div>
+
+                            <label>店家名稱 *</label>
+                            <input name="name" value="{{ restaurant['name'] }}" required>
+
+                            <div class="form-row">
+                                <div>
+                                    <label>地區 *</label>
+                                    <input name="city" value="{{ restaurant['city'] }}" required>
+                                </div>
+                                <div>
+                                    <label>料理類型 *</label>
+                                    <input name="category" value="{{ restaurant['category'] }}" required>
+                                </div>
+                            </div>
+
+                            <label>地址或商圈</label>
+                            <input name="address" value="{{ restaurant['address'] }}">
+
+                            <label>價格區間</label>
+                            <select name="price">
+                                <option value="" {% if not restaurant['price'] %}selected{% endif %}>未設定</option>
+                                <option value="$" {% if restaurant['price'] == '$' %}selected{% endif %}>$ 平價</option>
+                                <option value="$$" {% if restaurant['price'] == '$$' %}selected{% endif %}>$$ 中等</option>
+                                <option value="$$$" {% if restaurant['price'] == '$$$' %}selected{% endif %}>$$$ 較高</option>
+                            </select>
+
+                            <label>評分</label>
+                            <select name="rating">
+                                {% for score in range(6) %}
+                                <option value="{{ score }}" {% if restaurant['rating'] == score %}selected{% endif %}>{{ score }} 分{% if score == 0 %}（尚未評分）{% endif %}</option>
+                                {% endfor %}
+                            </select>
+
+                            <label>美食筆記</label>
+                            <textarea name="notes" rows="3">{{ restaurant['notes'] }}</textarea>
+
+                            <button type="submit" class="submit-button">儲存修改 ↗</button>
+                        </form>
+                    </dialog>
+                </article>
+                {% else %}
+                <div class="empty-state">
+                    <span class="empty-flower">✳</span>
+                    <h3>下一間喜歡的店，等你來收藏。</h3>
+                    <p>目前沒有符合條件的店家，試試其他篩選條件或新增一家店。</p>
+                    <a href="#add-form" class="hero-button">新增美食收藏 ↗</a>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section id="add-form" class="add-section">
+            <div class="add-cover">
+                <p class="eyebrow">THE NEXT DELICIOUS CHAPTER</p>
+                <h2>收藏下一場<br><span>美味的相遇。</span></h2>
+                <p>有些店，還沒去就值得期待。<br>把它們記下來，留給下一次的自己。</p>
+                <div class="add-cover-art">
+                    <img src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=900&q=80" alt="新鮮食材與料理靈感">
+                </div>
+                <span class="cover-caption">NOTES ON GOOD FOOD · VOL. 01</span>
+            </div>
+
+            <form class="add-form" method="POST" action="{{ url_for('add_restaurant') }}">
+                <div class="form-title">
+                    <span class="form-index">01 / NEW ENTRY</span>
+                    <h3>新增美食收藏</h3>
+                    <p>把店家資訊填好，加入你的專屬指南。</p>
+                </div>
+
+                <label for="name">店家名稱 <span>*</span></label>
+                <input id="name" name="name" placeholder="例如：巷弄裡的咖啡店" required>
+
+                <div class="form-row">
+                    <div>
+                        <label for="new-city">地區 <span>*</span></label>
+                        <input id="new-city" name="city" placeholder="例如：台北" required>
+                    </div>
+                    <div>
+                        <label for="new-category">料理類型 <span>*</span></label>
+                        <input id="new-category" name="category" list="category-options" placeholder="例如：咖啡廳" required>
+                        <datalist id="category-options">
+                            {% for item in categories %}
+                            <option value="{{ item }}">
+                            {% endfor %}
+                            <option value="咖啡廳">
+                            <option value="日式料理">
+                            <option value="甜點">
+                            <option value="早午餐">
+                            <option value="火鍋">
+                            <option value="小吃">
+                            <option value="義式料理">
+                            <option value="燒肉">
+                        </datalist>
+                    </div>
+                </div>
+
+                <label for="address">地址或商圈</label>
+                <input id="address" name="address" placeholder="例如：大安區、某某路">
+
+                <label for="price">價格區間</label>
+                <select id="price" name="price">
+                    <option value="">暫不設定</option>
+                    <option value="$">$ 平價</option>
+                    <option value="$$">$$ 中等</option>
+                    <option value="$$$">$$$ 較高</option>
+                </select>
+
+                <label for="notes">美食筆記</label>
+                <textarea id="notes" name="notes" rows="4" placeholder="想吃的餐點、店內氣氛、收藏原因……"></textarea>
+
+                <button type="submit" class="submit-button">加入我的美食指南 <span>↗</span></button>
+                <p class="required-note">＊ 為必填欄位</p>
+            </form>
+        </section>
+
+        <footer class="footer">
+            <a href="/" class="footer-brand">foodie journal<span>.</span></a>
+            <p>A LITTLE JOURNAL OF DELICIOUS THINGS.</p>
+            <a href="#top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">BACK TO TOP ↑</a>
+        </footer>
+    </main>
+</body>
+</html>
